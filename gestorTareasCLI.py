@@ -1,44 +1,80 @@
 import json
 import os
 
-if os.path.exists('archivo_Tareas.json'): #asegurandonos que el archivo existe antes de abrir; si existe, lo cargamos
-    with open('archivo_Tareas.json', 'r') as file: 
-        archivoTareas = json.load(file)
+run = True
 
-else:
-    archivoTareas = {'Tareas': []}
+#creamos una variable para guardar la ruta (nombre) de nuestro archivo 
+ruta_tareas = 'archivo_Tareas.json'
 
+#funcion para guardar las tareas que se agreguen.
+def guardar_Modificacion(datos): #datos espera un conjunto para añadir al json. 
+    with open(ruta_tareas, 'w') as file: 
+        json.dump(datos, file, indent=4)
 
-def agregarTarea(texto):
-    tarea_Agregada = {'Contenido' : texto,
-                      'Estado' : 'N/C'}
+#funcion que retorna un archivo preexistente o crea uno de ser necesario.
+def cargarArchivo():
+    if os.path.exists(ruta_tareas): 
+        with open(ruta_tareas, 'r') as file: 
+            archivoTareas = json.load(file)
+        return archivoTareas
+    else: 
+        nuevo_archivo = {'Tareas': []}
+        guardar_Modificacion(nuevo_archivo)
+        return nuevo_archivo
+
+#el contenidoTarea debe ser string. 
+''' MODIFICAR LA CONDICIONAL PARA EVALUAR '''
+def agregar_Tarea(contenidoTarea):
+    if not contenidoTarea or contenidoTarea == None: 
+        print('El contenido de la tarea no puede estar vacío.')
     
-    #a la lista de tareas en el json le agregamos la que se acaba de ingresar
-    archivoTareas['Tareas'].append(tarea_Agregada)
-    print(tarea_Agregada)
-    with open('archivo_Tareas.json', 'w') as file: 
-        json.dump(archivoTareas, file, indent=4)
-    return 'La tarea se ha agregado exitosamente.'
+    archivo_Tareas = cargarArchivo()
+    nuevaTarea = {'Contenido': contenidoTarea, 'Estado':'N/C'}
+    archivo_Tareas['Tareas'].append(nuevaTarea)
+    guardar_Modificacion(archivo_Tareas)
+    print('La tarea se ha agregado exitosamente.')
+
+#muestra las tareas 
+'''HACER UN FILTRO PARA TAREAS COMPLETADAS, NO COMPLETADAS Y EN PROCESO '''
+def ver_Tareas(estadoBuscado): 
+    archivo_Tareas = cargarArchivo()
+
+    #Comprueba si la lista de tareas está vacía
+    if not archivo_Tareas['Tareas']: 
+        print("-"*20 + " La lista de tareas está vacía. " + "-"*20)
+
+    for i, t in enumerate(archivo_Tareas['Tareas'], 1): 
+        print("Las tareas son: ")
+        print(f"{i}. [{t['Estado']}] -----  {t['Contenido']}")
+        print('-'*20)
+
+    if estadoBuscado == "NC": 
+        print("-"*20 + " TO-DO TASKS " + "-"*20)
+        for i, t in enumerate(archivo_Tareas['Tareas']): 
+            #HAY QUE CREAR FUNCIÓN PARA AVERIGUAR SI NO HAY TAREAS PENDIENTES
+            ''' 
+            if not t['Estado']: 
+                print('No hay tareas pendientes. ¡Yay!')
+            '''
+            if t['Estado'] == 'N/C':
+                print(f"{i}. [{t['Estado']}] -----  {t['Contenido']}")
+
+
     
-def verTareas(): 
-    #Se hace la variable i para enumerar las tareas. Cada tarea (diccionario) representada por "t"
-    for i, t in enumerate(archivoTareas['Tareas'], start=1): 
-        print(f"{i} {t['Estado']} {t['Contenido']}")
-
-texto = input('Ingrese una tarea: \n')
-agregarTarea(texto)
-
-print("LAS TAREAS SON: ")
-verTareas()
-
-#texto = input("Ingrese la tarea que desea agregar: ")
-#agregarTarea(texto)
 '''
-def eliminarTarea():
-    return
+#testing
+while run: 
+    print('Bienvenido. Que desea hacer?')
+    chose = input(' 1. Agregar una tarea \n 2. Ver las tareas \n 3. Salir \n')
 
-def modificarTarea(): 
-    return
+    if chose == '1': 
+        inputOfDoom = input('Ingrese la tarea: ')
+        agregar_Tarea(inputOfDoom)
 
-def 
+    if chose == '2': 
+        ver_Tareas()
+
+    if chose == '3': 
+        print('Hasta luego...')
+        run = False
 '''
