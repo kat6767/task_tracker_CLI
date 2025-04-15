@@ -22,17 +22,30 @@ def cargarArchivo():
         guardar_Modificacion(nuevo_archivo)
         return nuevo_archivo
 
+def leerUltimoID(): 
+        archivo_Tareas = cargarArchivo()
+        if not archivo_Tareas or not archivo_Tareas['Tareas']: 
+            print('-'*20 + 'La lista de tareas está vacía' + '-'*20)
+            return 0 
+            
+        lista_IDs = [int(t['ID']) for t in archivo_Tareas['Tareas']]
+        return max(lista_IDs)
+
 #el contenidoTarea debe ser string. 
-''' MODIFICAR LA CONDICIONAL PARA EVALUAR '''
 def agregar_Tarea(contenidoTarea):
-    if not contenidoTarea or contenidoTarea == None: 
+    if not contenidoTarea or not contenidoTarea.strip():
         print('El contenido de la tarea no puede estar vacío.')
+        return
     
     archivo_Tareas = cargarArchivo()
-    nuevaTarea = {'Contenido': contenidoTarea, 'Estado':'N/C'}
+    IDtarea = leerUltimoID + 1
+    nuevaTarea = {
+        'ID': IDtarea, 
+        'Contenido': contenidoTarea, 
+        'Estado':'N/C'}
     archivo_Tareas['Tareas'].append(nuevaTarea)
     guardar_Modificacion(archivo_Tareas)
-    print('La tarea se ha agregado exitosamente.')
+    print('La tarea se ha agregado exitosamente. ---- ID: ' + IDtarea )
 
 #muestra las tareas 
 '''HACER UN FILTRO PARA TAREAS COMPLETADAS, NO COMPLETADAS Y EN PROCESO '''
@@ -42,22 +55,27 @@ def ver_Tareas(estadoBuscado):
     #Comprueba si la lista de tareas está vacía
     if not archivo_Tareas['Tareas']: 
         print("-"*20 + " La lista de tareas está vacía. " + "-"*20)
+        return
 
-    for i, t in enumerate(archivo_Tareas['Tareas'], 1): 
-        print("Las tareas son: ")
-        print(f"{i}. [{t['Estado']}] -----  {t['Contenido']}")
-        print('-'*20)
+    if estadoBuscado == None: 
+        for i, t in enumerate(archivo_Tareas['Tareas'], 1): 
+            print("Las tareas son: ")
+            print(f"{i}. [{t['Estado']}] -----  {t['Contenido']}")
+            print('-'*20)
+            return
 
     if estadoBuscado == "NC": 
-        print("-"*20 + " TO-DO TASKS " + "-"*20)
+        print("-"*20 + " TAREAS POR HACER " + "-"*20)
+        
+        '''
         for i, t in enumerate(archivo_Tareas['Tareas']): 
             #HAY QUE CREAR FUNCIÓN PARA AVERIGUAR SI NO HAY TAREAS PENDIENTES
-            ''' 
+            
             if not t['Estado']: 
                 print('No hay tareas pendientes. ¡Yay!')
-            '''
             if t['Estado'] == 'N/C':
                 print(f"{i}. [{t['Estado']}] -----  {t['Contenido']}")
+        '''
 
 
     
@@ -68,8 +86,8 @@ while run:
     chose = input(' 1. Agregar una tarea \n 2. Ver las tareas \n 3. Salir \n')
 
     if chose == '1': 
-        inputOfDoom = input('Ingrese la tarea: ')
-        agregar_Tarea(inputOfDoom)
+        inputPrueba = input('Ingrese la tarea: ')
+        agregar_Tarea(inputPrueba)
 
     if chose == '2': 
         ver_Tareas()
