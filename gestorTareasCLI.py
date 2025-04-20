@@ -96,14 +96,36 @@ def ver_Tareas(estadoRequerido=None):
     else: 
         filtrar_Tareas(estadoRequerido)
 
-def modificarEstadoTarea():
+def modificarEstadoTarea(id_tarea, nuevo_estado):
+    if not id_tarea or not nuevo_estado or not nuevo_estado.strip(): 
+        print("-"*20 + " Debe ingresar el id de la tarea y el estado al que se cambiará. " + "-"*20)  
+        return
     
-    return
-'''
+    archivo_Tareas = cargarArchivo() 
+    id_encontrado = False
+    id_tarea = int(id_tarea)
+
+    
+    for i,t in enumerate(archivo_Tareas['Tareas'], 1):
+        if id_tarea == t["ID"]: 
+            print("DEBUG >>> Tarea encontrada ")
+            viejo_estado = t['Estado']
+            id_encontrado = True
+            break
+
+    if id_encontrado: 
+        t['Estado'] = nuevo_estado.upper()
+        guardar_Modificacion(archivo_Tareas)
+        print(f"Se ha modificado el estado de la tarea {str(id_tarea)} de {viejo_estado} a {nuevo_estado}")
+        return 
+    else: 
+        print(f"No se encontró la tarea con ID {str(id_tarea)}")
+        return
+
 #testing
 while run: 
     print('Bienvenido. Que desea hacer?')
-    chose = input(' 1. Agregar una tarea \n 2. Ver las tareas \n 3. Salir \n')
+    chose = input(' 1. Agregar una tarea \n 2. Ver las tareas \n 3. Salir \n 4. cambiar estado tarea ')
 
     if chose == '1': 
         inputPrueba = input('Ingrese la tarea: ')
@@ -115,4 +137,8 @@ while run:
     if chose == '3': 
         print('Hasta luego...')
         run = False
-'''
+
+    if chose == '4': 
+        ar1 = int(input("Ingrese el id de la tarea a modificar"))
+        ar2 = input("Ingrese el nuevo estado")
+        modificarEstadoTarea(ar1, ar2)
