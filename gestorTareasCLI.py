@@ -15,18 +15,28 @@ def guardar_Modificacion(datos): #datos espera un conjunto/diccionario para aña
 def cargarArchivo():
     if os.path.exists(ruta_tareas): 
         with open(ruta_tareas, 'r') as file: 
-            archivoTareas = json.load(file)
-        return archivoTareas
+            try: 
+                archivoTareas = json.load(file) #verificamos que se cargue correctamente
+                if 'Tareas' not in archivoTareas:   #si la clave Tareas no existe en el diccionario, la creamos
+                    archivoTareas['Tareas'] = [] 
+                    guardar_Modificacion(archivoTareas) #Guardamos la modificación al archivo
+                return archivoTareas
+            except json.JSONDecodeError: #Si el archivo está corrupto, devolvemos un diccionario limpio
+                return {'Tareas': []}
     else: 
-        nuevo_archivo = {'Tareas': []}
+        nuevo_archivo = {'Tareas': []}  #Si no se encontró el archivo creamos uno. EASY
         guardar_Modificacion(nuevo_archivo)
         return nuevo_archivo
 
+#Funcion para obtener el último ID ingresado
 def leerUltimoID(): 
         archivo_Tareas = cargarArchivo()
-        if not archivo_Tareas or not archivo_Tareas['Tareas']: 
+        if not archivo_Tareas or not 'Tareas' in archivo_Tareas: 
             return 0 
             
+        if not archivo_Tareas['Tareas']: 
+            return 0 
+        
         lista_IDs = [int(t['ID']) for t in archivo_Tareas['Tareas']]
         return max(lista_IDs)
 
@@ -75,7 +85,7 @@ def filtrar_Tareas(estado):
     titulo = titulos[estado_buscado]
     print("-"*20 + f"{titulo}" + "-"*20)
     for i, t in enumerate(tareas_filtradas, 1): 
-        print(f"{i}. [{t['Estado']}] -----  {t['Contenido']}")
+        print(f"{i}.  ID = [{t['ID']}] [{t['Estado']}] -----  {t['Contenido']}")
     return
 
 #muestra las tareas requeridas 
@@ -88,9 +98,9 @@ def ver_Tareas(estadoRequerido=None):
         return
 
     if estadoRequerido is None: 
+        print("Las tareas son: ")
         for i, t in enumerate(archivo_Tareas['Tareas'], 1): 
-            print("Las tareas son: ")
-            print(f"{i}. [{t['Estado']}] -----  {t['Contenido']}")
+            print(f"{i}. ID: {t['ID']} [{t['Estado']}] -----  {t['Contenido']}")
         print('-'*20)
         return
     else: 
@@ -102,13 +112,13 @@ def modificarEstadoTarea(id_tarea, nuevo_estado):
         return
     
     archivo_Tareas = cargarArchivo() 
+
+    #Controlador para saber si el id fue encontrado
     id_encontrado = False
     id_tarea = int(id_tarea)
-
     
     for i,t in enumerate(archivo_Tareas['Tareas'], 1):
         if id_tarea == t["ID"]: 
-            print("DEBUG >>> Tarea encontrada ")
             viejo_estado = t['Estado']
             id_encontrado = True
             break
@@ -121,11 +131,34 @@ def modificarEstadoTarea(id_tarea, nuevo_estado):
     else: 
         print(f"No se encontró la tarea con ID {str(id_tarea)}")
         return
+    
+def borrarTarea(id_tarea):
+    if not id_tarea or not id_tarea.strip():
+        print("-"*20 + "Debe ingresar el ID de la tarea a borrar."+ "-"*20)
+        return
+    
+    archivo_tareas = cargarArchivo()
+    tarea_encontrada = False
+    Id_tarea = int(id_tarea)
+
+    for i, t in enumerate(archivo_tareas['Tareas']):
+        if Id_tarea == t['ID']: 
+            tarea_encontrada = True
+            break 
+        
+    if tarea_encontrada: 
+        cambio = archivo_tareas['Tareas'].pop()
+        guardar_Modificacion(cambio)
+        print("-"*20 + f"Se eliminó la tarea con ID {id_tarea} exitosamente." + "-"*20)
+        return
+    else: 
+        print("-"*20 + f"No se encontró la tarea con ID {id_tarea}" + "-"*20)
+        return
 
 #testing
 while run: 
     print('Bienvenido. Que desea hacer?')
-    chose = input(' 1. Agregar una tarea \n 2. Ver las tareas \n 3. Salir \n 4. cambiar estado tarea ')
+    chose = input(' 1. Agregar una tarea \n 2. Ver las tareas \n 3. Salir \n 4. cambiar estado tarea \n 5. Borrar tarea \n')
 
     if chose == '1': 
         inputPrueba = input('Ingrese la tarea: ')
@@ -142,3 +175,8 @@ while run:
         ar1 = int(input("Ingrese el id de la tarea a modificar"))
         ar2 = input("Ingrese el nuevo estado")
         modificarEstadoTarea(ar1, ar2)
+
+    if chose == '5': 
+        ver_Tareas()
+        argumento = input("Ingrese el ID de la tarea que desea borrar")
+        borrarTarea(argumento)
